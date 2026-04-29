@@ -65,7 +65,7 @@ function App() {
                   data={chartData.data}
                   keys={["Champions", "Active", "Low Engagement"]}
                   indexBy="month"
-                  margin={{ top: 20, right: 130, bottom: 60, left: 60 }}
+                  margin={{ top: 20, right: 130, bottom: 90, left: 60 }}
                   padding={0.3}
                   groupMode="grouped"
                   colors={["#22c55e", "#3b82f6", "#f97316"]}
