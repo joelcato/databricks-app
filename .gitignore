@@ -1,0 +1,7 @@
+.databricks
+node_modules/
+.venv/
+__pycache__/
+backend/static/
+.DS_Store
+.env
