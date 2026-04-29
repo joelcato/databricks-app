@@ -68,6 +68,47 @@ async def get_data():
         "y_title": "Total Spend ($)"
     }
 
+@app.get("/api/sankey")
+async def get_sankey():
+    logger.info("Querying sankey flow data")
+    query = """
+        SELECT
+            CONCAT(f.prev_periodLabel, ' - ', ps.segment_name) AS source,
+            CONCAT(f.periodLabel, ' - ', cs.segment_name) AS target,
+            f.flow_count AS value,
+            cs.color_rgba AS color
+        FROM customer_analytics_app.default.rfm_sankey_flows f
+        JOIN customer_analytics_app.segmentation.segment_config ps
+            ON f.prev_segmentID = ps.segment_id
+        JOIN customer_analytics_app.segmentation.segment_config cs
+            ON f.segmentID = cs.segment_id
+        WHERE f.prev_periodLabel = '2021-11'
+          AND f.periodLabel = '2021-12'
+        ORDER BY f.flow_count DESC
+    """
+    with get_connection() as conn:
+        with conn.cursor() as cursor:
+            cursor.execute(query)
+            rows = cursor.fetchall()
+            columns = [desc[0] for desc in cursor.description]
+
+    raw = [dict(zip(columns, row)) for row in rows]
+
+    # Build Nivo Sankey format: {nodes: [{id}], links: [{source, target, value}]}
+    node_ids = set()
+    links = []
+    for row in raw:
+        node_ids.add(row["source"])
+        node_ids.add(row["target"])
+        links.append({
+            "source": row["source"],
+            "target": row["target"],
+            "value": row["value"],
+        })
+
+    nodes = [{"id": nid} for nid in sorted(node_ids)]
+    return {"nodes": nodes, "links": links}
+
 # --- Static Files Setup ---
 static_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "static")
 os.makedirs(static_dir, exist_ok=True)

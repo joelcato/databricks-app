@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { ResponsiveLine } from "@nivo/line";
+import { ResponsiveSankey } from "@nivo/sankey";
 import "./App.css";
 
 interface ApiResponse {
@@ -20,19 +21,37 @@ interface ChartData {
   y_title: string;
 }
 
+interface SankeyNode {
+  id: string;
+}
+
+interface SankeyLink {
+  source: string;
+  target: string;
+  value: number;
+}
+
+interface SankeyData {
+  nodes: SankeyNode[];
+  links: SankeyLink[];
+}
+
 function App() {
   const [apiData, setApiData] = useState<ApiResponse | null>(null);
   const [chartData, setChartData] = useState<ChartData | null>(null);
+  const [sankeyData, setSankeyData] = useState<SankeyData | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     Promise.all([
       fetch("/api/hello").then((r) => r.json()),
       fetch("/api/data").then((r) => r.json()),
+      fetch("/api/sankey").then((r) => r.json()),
     ])
-      .then(([helloData, dataResponse]) => {
+      .then(([helloData, dataResponse, sankeyResponse]) => {
         setApiData(helloData);
         setChartData(dataResponse);
+        setSankeyData(sankeyResponse);
         setLoading(false);
       })
       .catch((error) => {
@@ -112,6 +131,35 @@ function App() {
                       symbolShape: "circle",
                     },
                   ]}
+                />
+              </div>
+            )}
+
+            {sankeyData && (
+              <div className="chart-container" style={{ height: 500 }}>
+                <h2 style={{ textAlign: "center", color: "#333", margin: "0 0 12px 0" }}>
+                  Customer Segment Flow: Nov → Dec 2021
+                </h2>
+                <ResponsiveSankey
+                  data={sankeyData}
+                  margin={{ top: 20, right: 160, bottom: 20, left: 20 }}
+                  align="justify"
+                  colors={["#22c55e", "#3b82f6", "#f97316"]}
+                  nodeOpacity={1}
+                  nodeThickness={18}
+                  nodeInnerPadding={3}
+                  nodeSpacing={24}
+                  nodeBorderWidth={0}
+                  linkOpacity={0.3}
+                  linkHoverOpacity={0.6}
+                  linkContract={3}
+                  enableLinkGradient={true}
+                  labelPosition="outside"
+                  labelOrientation="horizontal"
+                  labelPadding={16}
+                  labelTextColor={{ from: "color", modifiers: [["darker", 1]] }}
+                  animate={true}
+                  motionConfig="gentle"
                 />
               </div>
             )}
