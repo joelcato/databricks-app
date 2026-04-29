@@ -3,6 +3,11 @@ import logging
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
+from dotenv import load_dotenv
+load_dotenv()
+from databricks.sdk.core import Config
+from databricks import sql
+
 
 # --- Logging Setup ---
 logging.basicConfig(
@@ -12,6 +17,16 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 app = FastAPI(title="Simple FastAPI + React App")
+
+def get_connection():
+    cfg = Config()
+    warehouse_id = os.getenv("DATABRICKS_WAREHOUSE_ID")
+    http_path = f"/sql/1.0/warehouses/{warehouse_id}"
+    return sql.connect(
+        server_hostname=cfg.host,
+        http_path=http_path,
+        credentials_provider=lambda: cfg.authenticate,
+    )
 
 # --- API Routes ---
 @app.get("/api/hello")
@@ -26,20 +41,31 @@ async def health_check():
 
 @app.get("/api/data")
 async def get_data():
-    logger.info("Data requested at /api/data")
-    data = [
-        {"month": "Jan", "Champions": 642, "Active": 781, "Low Engagement": 564},
-        {"month": "Feb", "Champions": 658, "Active": 790, "Low Engagement": 543},
-        {"month": "Mar", "Champions": 701, "Active": 762, "Low Engagement": 528},
-        {"month": "Apr", "Champions": 723, "Active": 745, "Low Engagement": 512},
-        {"month": "May", "Champions": 689, "Active": 803, "Low Engagement": 498},
-        {"month": "Jun", "Champions": 745, "Active": 778, "Low Engagement": 467},
-    ]
+    logger.info("Querying amazon_purchases for segment data")
+    query = """
+        SELECT
+            DATE_FORMAT(`Order Date`, 'yyyy-MM') AS month,
+            COUNT(*) AS order_count,
+            ROUND(SUM(`Purchase Price Per Unit` * `Quantity`), 2) AS total_spend,
+            COUNT(DISTINCT `Survey ResponseID`) AS unique_customers
+        FROM customer_analytics_app.default.amazon_purchases
+        WHERE `Order Date` IS NOT NULL
+        GROUP BY DATE_FORMAT(`Order Date`, 'yyyy-MM')
+        ORDER BY month
+        LIMIT 24
+    """
+    with get_connection() as conn:
+        with conn.cursor() as cursor:
+            cursor.execute(query)
+            rows = cursor.fetchall()
+            columns = [desc[0] for desc in cursor.description]
+
+    data = [dict(zip(columns, row)) for row in rows]
     return {
         "data": data,
-        "title": "Customer Segments Over Time",
+        "title": "Monthly Purchase Activity",
         "x_title": "Month",
-        "y_title": "Customers"
+        "y_title": "Total Spend ($)"
     }
 
 # --- Static Files Setup ---
