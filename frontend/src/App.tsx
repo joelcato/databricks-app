@@ -145,7 +145,7 @@ function App() {
                 <div className="chart-wrapper">
                   <ResponsiveSankey
                     data={sankeyData}
-                    margin={{ top: 20, right: 160, bottom: 20, left: 20 }}
+                    margin={{ top: 20, right: 160, bottom: 20, left: 160 }}
                     align="justify"
                     colors={["#22c55e", "#3b82f6", "#f97316"]}
                     nodeOpacity={1}

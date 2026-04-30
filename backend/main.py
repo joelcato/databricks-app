@@ -73,17 +73,16 @@ async def get_sankey():
     logger.info("Querying sankey flow data")
     query = """
         SELECT
-            CONCAT(f.prev_periodLabel, ' - ', ps.segment_name) AS source,
-            CONCAT(f.periodLabel, ' - ', cs.segment_name) AS target,
-            f.flow_count AS value,
-            cs.color_rgba AS color
+            CONCAT(ps.segment_name, ' (', f.prev_periodLabel, ')') AS source,
+            CONCAT(cs.segment_name, ' (', f.periodLabel, ')') AS target,
+            f.flow_count AS value
         FROM customer_analytics_app.default.rfm_sankey_flows f
         JOIN customer_analytics_app.segmentation.segment_config ps
             ON f.prev_segmentID = ps.segment_id
         JOIN customer_analytics_app.segmentation.segment_config cs
             ON f.segmentID = cs.segment_id
         WHERE f.prev_periodLabel = '2021-11'
-          AND f.periodLabel = '2021-12'
+        AND f.periodLabel = '2021-12'
         ORDER BY f.flow_count DESC
     """
     with get_connection() as conn:
