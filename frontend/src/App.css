@@ -46,31 +46,33 @@
 .chart-container {
   width: 100%;
   max-width: 800px;
-  height: 400px;
   background-color: white;
   border-radius: 12px;
   padding: 20px;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  position: relative;
 }
 
-.chart-container > div {
+.chart-wrapper {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+}
+
+.chart-wrapper > div {
   width: 100% !important;
   height: 100% !important;
 }
 
 @media (max-width: 768px) {
   .chart-container {
-    height: 300px;
     padding: 15px;
     margin: 0 20px;
   }
-  
+
   .App-header h1 {
     font-size: 2rem;
   }
-  
+
   .content {
     padding: 0 20px;
   }
-} 
+}
