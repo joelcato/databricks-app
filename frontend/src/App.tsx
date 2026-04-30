@@ -3,10 +3,6 @@ import { ResponsiveLine } from "@nivo/line";
 import { ResponsiveSankey } from "@nivo/sankey";
 import "./App.css";
 
-interface ApiResponse {
-  message: string;
-}
-
 interface MonthRow {
   month: string;
   order_count: number;
@@ -37,19 +33,16 @@ interface SankeyData {
 }
 
 function App() {
-  const [apiData, setApiData] = useState<ApiResponse | null>(null);
   const [chartData, setChartData] = useState<ChartData | null>(null);
   const [sankeyData, setSankeyData] = useState<SankeyData | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     Promise.all([
-      fetch("/api/hello").then((r) => r.json()),
       fetch("/api/data").then((r) => r.json()),
       fetch("/api/sankey").then((r) => r.json()),
     ])
-      .then(([helloData, dataResponse, sankeyResponse]) => {
-        setApiData(helloData);
+      .then(([dataResponse, sankeyResponse]) => {
         setChartData(dataResponse);
         setSankeyData(sankeyResponse);
         setLoading(false);
@@ -69,12 +62,6 @@ function App() {
           <p>Loading...</p>
         ) : (
           <div className="content">
-            {apiData && (
-              <div className="api-info">
-                <p className="message">{apiData.message}</p>
-              </div>
-            )}
-
             {chartData && (
               <div className="chart-container">
                 <h2 style={{ textAlign: "center", color: "#333", margin: "0 0 12px 0" }}>

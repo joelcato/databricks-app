@@ -29,11 +29,6 @@ def get_connection():
     )
 
 # --- API Routes ---
-@app.get("/api/hello")
-async def hello():
-    logger.info("Accessed /api/hello")
-    return {"message": "Hello from FastAPI!"}
-
 @app.get("/api/health")
 async def health_check():
     logger.info("Health check at /api/health")
