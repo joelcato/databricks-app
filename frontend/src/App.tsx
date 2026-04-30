@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
-import { ResponsiveLine } from "@nivo/line";
-import { ResponsiveSankey } from "@nivo/sankey";
+import ReactECharts from "echarts-for-react";
 import "./App.css";
 
 interface MonthRow {
@@ -53,110 +52,104 @@ function App() {
       });
   }, []);
 
+  const lineOption = chartData
+    ? {
+        tooltip: { trigger: "axis" as const },
+        legend: {
+          data: ["Total Spend", "Order Count"],
+          textStyle: { fontSize: 11 },
+          bottom: 0,
+        },
+        grid: { left: 60, right: 20, top: 30, bottom: 80 },
+        xAxis: {
+          type: "category" as const,
+          data: chartData.data.map((d) => d.month),
+          axisLabel: { rotate: 45, fontSize: 10 },
+        },
+        yAxis: { type: "value" as const },
+        series: [
+          {
+            name: "Total Spend",
+            type: "line" as const,
+            data: chartData.data.map((d) => d.total_spend),
+            areaStyle: { opacity: 0.07 },
+            color: "#3b82f6",
+            smooth: true,
+          },
+          {
+            name: "Order Count",
+            type: "line" as const,
+            data: chartData.data.map((d) => d.order_count),
+            areaStyle: { opacity: 0.07 },
+            color: "#22c55e",
+            smooth: true,
+          },
+        ],
+      }
+    : null;
+
+  const sankeyOption = sankeyData
+    ? {
+        tooltip: { trigger: "item" as const },
+        series: [
+          {
+            type: "sankey" as const,
+            data: sankeyData.nodes.map((n) => ({ name: n.id })),
+            links: sankeyData.links,
+            emphasis: { focus: "adjacency" as const },
+            lineStyle: { color: "gradient" as const, curveness: 0.5 },
+            itemStyle: { borderWidth: 0 },
+            label: { fontSize: 11 },
+          },
+        ],
+      }
+    : null;
+
+  if (loading) {
+    return (
+      <div className="flex flex-col items-center justify-center h-screen bg-gray-800">
+        <h1 className="text-3xl font-bold text-white mb-4">Customer 360</h1>
+        <p className="text-white">Loading...</p>
+      </div>
+    );
+  }
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <h1>Customer 360</h1>
-
-        {loading ? (
-          <p>Loading...</p>
-        ) : (
-          <div className="content">
-            {chartData && (
-              <div className="chart-container">
-                <h2 style={{ textAlign: "center", color: "#333", margin: "0 0 12px 0" }}>
-                  {chartData.title}
-                </h2>
-                <div className="chart-wrapper">
-                  <ResponsiveLine
-                    data={[
-                      {
-                        id: "Total Spend",
-                        data: chartData.data.map((d) => ({
-                          x: d.month,
-                          y: d.total_spend,
-                        })),
-                      },
-                      {
-                        id: "Order Count",
-                        data: chartData.data.map((d) => ({
-                          x: d.month,
-                          y: d.order_count,
-                        })),
-                      },
-                    ]}
-                    margin={{ top: 20, right: 130, bottom: 70, left: 80 }}
-                    xScale={{ type: "point" }}
-                    yScale={{ type: "linear", stacked: false }}
-                    axisBottom={{
-                      tickRotation: -45,
-                      legend: chartData.x_title,
-                      legendOffset: 60,
-                      legendPosition: "middle",
-                    }}
-                    axisLeft={{
-                      legend: chartData.y_title,
-                      legendOffset: -65,
-                      legendPosition: "middle",
-                    }}
-                    colors={["#3b82f6", "#22c55e"]}
-                    pointSize={4}
-                    pointColor={{ from: "color" }}
-                    enableArea={true}
-                    areaOpacity={0.07}
-                    useMesh={true}
-                    animate={true}
-                    motionConfig="gentle"
-                    legends={[
-                      {
-                        anchor: "bottom-right",
-                        direction: "column",
-                        translateX: 120,
-                        itemWidth: 100,
-                        itemHeight: 20,
-                        itemTextColor: "#666",
-                        symbolSize: 12,
-                        symbolShape: "circle",
-                      },
-                    ]}
-                  />
-                </div>
-              </div>
-            )}
-
-            {sankeyData && (
-              <div className="chart-container">
-                <h2 style={{ textAlign: "center", color: "#333", margin: "0 0 12px 0" }}>
-                  Customer Segment Flow: Nov → Dec 2021
-                </h2>
-                <div className="chart-wrapper">
-                  <ResponsiveSankey
-                    data={sankeyData}
-                    margin={{ top: 20, right: 160, bottom: 20, left: 160 }}
-                    align="justify"
-                    colors={["#22c55e", "#3b82f6", "#f97316"]}
-                    nodeOpacity={1}
-                    nodeThickness={18}
-                    nodeInnerPadding={3}
-                    nodeSpacing={24}
-                    nodeBorderWidth={0}
-                    linkOpacity={0.3}
-                    linkHoverOpacity={0.6}
-                    linkContract={3}
-                    enableLinkGradient={true}
-                    labelPosition="outside"
-                    labelOrientation="horizontal"
-                    labelPadding={16}
-                    labelTextColor={{ from: "color", modifiers: [["darker", 1]] }}
-                    animate={true}
-                    motionConfig="gentle"
-                  />
-                </div>
-              </div>
-            )}
+    <div className="flex flex-col h-screen bg-gray-800 overflow-hidden">
+      <h1 className="text-3xl font-bold text-white text-center py-4">
+        Customer 360
+      </h1>
+      <div className="flex-1 grid grid-cols-1 grid-rows-2 gap-4 px-4 pb-4 min-h-0">
+        {lineOption && (
+          <div className="bg-white rounded-xl p-3 shadow-md flex flex-col min-h-0 overflow-hidden w-full max-w-4xl mx-auto max-h-[45vh]">
+            <h2 className="text-sm font-semibold text-gray-700 text-center mb-2">
+              Monthly Purchase Activity
+            </h2>
+            <div className="chart-wrapper flex-1 min-h-0">
+              <ReactECharts
+                option={lineOption}
+                style={{ width: "100%", height: "100%" }}
+                opts={{ renderer: "canvas" }}
+              />
+            </div>
           </div>
         )}
-      </header>
+
+        {sankeyOption && (
+          <div className="bg-white rounded-xl p-3 shadow-md flex flex-col min-h-0 overflow-hidden w-full max-w-4xl mx-auto max-h-[45vh]">
+            <h2 className="text-sm font-semibold text-gray-700 text-center mb-2">
+              Segment Flow: Nov → Dec 2021
+            </h2>
+            <div className="chart-wrapper flex-1 min-h-0">
+              <ReactECharts
+                option={sankeyOption}
+                style={{ width: "100%", height: "100%" }}
+                opts={{ renderer: "canvas" }}
+              />
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   );
 }
