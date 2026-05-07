@@ -94,7 +94,14 @@ function App() {
         series: [
           {
             type: "sankey" as const,
-            data: sankeyData.nodes.map((n) => ({ name: n.id })),
+            data: sankeyData.nodes.map((n) => ({
+              name: n.id,
+              itemStyle: {
+                color: n.id.includes("Champions") ? "#f59e0b"
+                    : n.id.includes("Active") ? "#3b82f6"
+                    : "#ef4444"
+              }
+            })),
             links: sankeyData.links,
             emphasis: { focus: "adjacency" as const },
             lineStyle: { color: "gradient" as const, curveness: 0.5 },
