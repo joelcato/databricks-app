@@ -56,6 +56,7 @@ async def get_data():
             columns = [desc[0] for desc in cursor.description]
 
     data = [dict(zip(columns, row)) for row in rows]
+
     return {
         "data": data,
         "title": "Monthly Purchase Activity",
