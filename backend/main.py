@@ -39,13 +39,12 @@ async def get_data():
     logger.info("Querying amazon_purchases for segment data")
     query = """
         SELECT
-            DATE_FORMAT(`Order Date`, 'yyyy-MM') AS month,
-            COUNT(*) AS order_count,
-            ROUND(SUM(`Purchase Price Per Unit` * `Quantity`), 2) AS total_spend,
-            COUNT(DISTINCT `Survey ResponseID`) AS unique_customers
-        FROM customer_analytics_app.default.amazon_purchases
-        WHERE `Order Date` IS NOT NULL
-        GROUP BY DATE_FORMAT(`Order Date`, 'yyyy-MM')
+            periodLabel AS month,
+            SUM(orders) AS order_count,
+            ROUND(SUM(spend), 2) AS total_spend,
+            COUNT(DISTINCT user_id) AS unique_customers
+        FROM customer_analytics_app.gold.monthly_user_segments
+        GROUP BY periodLabel
         ORDER BY month
         LIMIT 24
     """
